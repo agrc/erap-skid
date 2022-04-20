@@ -6,6 +6,9 @@ on:
       - main
       - dev
   pull-request:
+      branches:
+      - main
+      - dev
 
 concurrency:
   group: "${{ github.head_ref || github.ref }}"
