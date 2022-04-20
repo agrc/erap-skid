@@ -45,6 +45,7 @@ jobs:
   deploy-dev:
     name: Deploy to GCF
     needs: test
+    runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/dev'
     environment:
       name: dev
