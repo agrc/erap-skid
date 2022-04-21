@@ -73,7 +73,7 @@ jobs:
           name: erap-skid
           runtime: python38
           entry_point: main
-          source_dir: erap-skid\src\erap
+          source_dir: erap-skid\erap-skid\src\erap
           service_account_email: cloud-function-sa@${{ secrets.PROJECT_ID }}.iam.gserviceaccount.com
           event_trigger_type: providers/cloud.pubsub/eventTypes/topic.publish
           event_trigger_resource: projects/${{ secrets.PROJECT_ID }}/topics/erap-scheduler
