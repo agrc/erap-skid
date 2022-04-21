@@ -94,7 +94,7 @@ jobs:
               --time-zone=America/Denver \
               --location=us-central1 \
               --topic=monday-morning-topic \
-              --oidc-service-account-email=cloud-scheduler-sa@${{ secrets.PROJECT_ID }}.iam.gserviceaccount.com \
+              --impersonate-service-account=cloud-scheduler-sa@${{ secrets.PROJECT_ID }}.iam.gserviceaccount.com \
               --quiet
           else
             gcloud scheduler jobs update pubsub monday-morning \
@@ -103,6 +103,6 @@ jobs:
               --time-zone=America/Denver \
               --location=us-central1 \
               --topic=monday-morning-topic \
-              --oidc-service-account-email=cloud-scheduler-sa@${{ secrets.PROJECT_ID }}.iam.gserviceaccount.com \
+              --impersonate-service-account=cloud-scheduler-sa@${{ secrets.PROJECT_ID }}.iam.gserviceaccount.com \
               --quiet
           fi
