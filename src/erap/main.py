@@ -14,7 +14,7 @@ from palletjack import ColorRampReclassifier, FeatureServiceInlineUpdater, SFTPL
 from supervisor.message_handlers import SendGridHandler
 from supervisor.models import MessageDetails, Supervisor
 
-from erap import rotating, secrets
+from . import rotating, secrets
 
 
 def _initialize():
