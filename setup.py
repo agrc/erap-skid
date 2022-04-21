@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 """
 setup.py
-A module that installs projectname as a module
+A module that installs erap (skid) as a module
 """
 from glob import glob
 from os.path import basename, splitext
@@ -10,13 +10,13 @@ from os.path import basename, splitext
 from setuptools import find_packages, setup
 
 setup(
-    name='projectname',
+    name='erap',
     version='1.0.0',
     license='MIT',
-    description='Project description.',
-    author='UGRC',
-    author_email='ugrc@utah.gov',
-    url='https://github.com/agrc/python',
+    description='ERAP as a cloud function skid.',
+    author='Jacob Adams',
+    author_email='jdadams@utah.gov',
+    url='https://github.com/agrc/erap-skid',
     packages=find_packages('src'),
     package_dir={'': 'src'},
     py_modules=[splitext(basename(path))[0] for path in glob('src/*.py')],
@@ -33,7 +33,8 @@ setup(
     },
     keywords=['gis'],
     install_requires=[
-        # 'package==1.0.*'
+        'arcgis==1.9.*',
+        'ugrc-palletjack==2.0.*',
     ],
     extras_require={
         'tests': [
@@ -52,6 +53,6 @@ setup(
         'pytest-runner',
     ],
     entry_points={'console_scripts': [
-        'projectname = projectname.main:main',
+        'erap-skid = erap.main:main',
     ]},
 )
