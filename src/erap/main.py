@@ -14,26 +14,32 @@ from palletjack import ColorRampReclassifier, FeatureServiceInlineUpdater, SFTPL
 from supervisor.message_handlers import SendGridHandler
 from supervisor.models import MessageDetails, Supervisor
 
-from . import rotating, secrets
+#: This makes it work when calling with just python <file>/installing via pip and in the gcf framework, where
+#: the relative imports fail because of how it's calling the function.
+try:
+    from . import config, rotating
+except ImportError:
+    import config
+    import rotating
 
 
 def _initialize():
 
     erap_logger = logging.getLogger('erap')
-    erap_logger.setLevel(secrets.LOG_LEVEL)
+    erap_logger.setLevel(config.LOG_LEVEL)
     palletjack_logger = logging.getLogger('palletjack')
-    palletjack_logger.setLevel(secrets.LOG_LEVEL)
+    palletjack_logger.setLevel(config.LOG_LEVEL)
 
     cli_handler = logging.StreamHandler(sys.stdout)
-    cli_handler.setLevel(secrets.LOG_LEVEL)
+    cli_handler.setLevel(config.LOG_LEVEL)
     formatter = logging.Formatter(
         fmt='%(levelname)-7s %(asctime)s %(name)15s:%(lineno)5s %(message)s', datefmt='%Y-%m-%d %H:%M:%S'
     )
     cli_handler.setFormatter(formatter)
 
-    log_handler = RotatingFileHandler(secrets.ERAP_LOG_PATH, backupCount=secrets.ROTATE_COUNT)
+    log_handler = RotatingFileHandler(config.ERAP_LOG_PATH, backupCount=config.ROTATE_COUNT)
     log_handler.doRollover()  #: Rotate the log on each run
-    log_handler.setLevel(secrets.LOG_LEVEL)
+    log_handler.setLevel(config.LOG_LEVEL)
     log_handler.setFormatter(formatter)
 
     erap_logger.addHandler(cli_handler)
@@ -47,9 +53,9 @@ def _initialize():
     logging.captureWarnings(True)
 
     erap_logger.debug('Creating Supervisor object')
-    erap_supervisor = Supervisor(logger=erap_logger, log_path=secrets.ERAP_LOG_PATH)
+    erap_supervisor = Supervisor(logger=erap_logger, log_path=config.ERAP_LOG_PATH)
     erap_supervisor.add_message_handler(
-        SendGridHandler(sendgrid_settings=secrets.SENDGRID_SETTINGS, project_name='erap')
+        SendGridHandler(sendgrid_settings=config.SENDGRID_SETTINGS, project_name='erap')
     )
 
     return erap_supervisor
@@ -65,31 +71,31 @@ def process():
 
     module_logger = logging.getLogger(__name__)
 
-    module_logger.debug('Logging into `%s` as `%s`', secrets.AGOL_ORG, secrets.AGOL_USER)
-    gis = arcgis.gis.GIS(secrets.AGOL_ORG, secrets.AGOL_USER, secrets.AGOL_PASSWORD)
-    erap_webmap_item = gis.content.get(secrets.ERAP_WEBMAP_ITEMID)  # pylint: disable=no-member
-    rotator = rotating.FolderRotator(secrets.ERAP_BASE_DIR)
-    erap_download_dir = rotator.get_rotated_directory(max_folder_count=secrets.ROTATE_COUNT)
+    module_logger.debug('Logging into `%s` as `%s`', config.AGOL_ORG, config.AGOL_USER)
+    gis = arcgis.gis.GIS(config.AGOL_ORG, config.AGOL_USER, config.AGOL_PASSWORD)
+    erap_webmap_item = gis.content.get(config.ERAP_WEBMAP_ITEMID)  # pylint: disable=no-member
+    rotator = rotating.FolderRotator(config.ERAP_BASE_DIR)
+    erap_download_dir = rotator.get_rotated_directory(max_folder_count=config.ROTATE_COUNT)
 
     #: Load the latest data from FTP
     module_logger.info('Getting data from FTP')
     erap_loader = SFTPLoader(
-        secrets.SFTP_HOST, secrets.SFTP_USERNAME, secrets.SFTP_PASSWORD, secrets.KNOWNHOSTS, erap_download_dir
+        config.SFTP_HOST, config.SFTP_USERNAME, config.SFTP_PASSWORD, config.KNOWNHOSTS, erap_download_dir
     )
-    files_downloaded = erap_loader.download_sftp_folder_contents(sftp_folder=secrets.SFTP_FOLDER)
-    dataframe = erap_loader.read_csv_into_dataframe(secrets.ERAP_FILE_NAME, secrets.ERAP_DATA_TYPES)
+    files_downloaded = erap_loader.download_sftp_folder_contents(sftp_folder=config.SFTP_FOLDER)
+    dataframe = erap_loader.read_csv_into_dataframe(config.ERAP_FILE_NAME, config.ERAP_DATA_TYPES)
 
     #: Update the AGOL data
     module_logger.info('Updating data in AGOL')
-    erap_updater = FeatureServiceInlineUpdater(gis, dataframe, secrets.ERAP_KEY_COLUMN)
+    erap_updater = FeatureServiceInlineUpdater(gis, dataframe, config.ERAP_KEY_COLUMN)
     rows_updated = erap_updater.update_existing_features_in_hosted_feature_layer(
-        secrets.ERAP_FEATURE_LAYER_ITEMID, list(secrets.ERAP_DATA_TYPES.keys())
+        config.ERAP_FEATURE_LAYER_ITEMID, list(config.ERAP_DATA_TYPES.keys())
     )
 
     #: Reclassify the break values on the webmap's color ramp
     module_logger.info('Reclassifying the map')
     erap_reclassifier = ColorRampReclassifier(erap_webmap_item, gis)
-    success = erap_reclassifier.update_color_ramp_values(secrets.ERAP_LAYER_NAME, secrets.ERAP_CLASSIFICATION_COLUMN)
+    success = erap_reclassifier.update_color_ramp_values(config.ERAP_LAYER_NAME, config.ERAP_CLASSIFICATION_COLUMN)
 
     reclassifier_result = 'Success'
     if not success:
@@ -111,7 +117,7 @@ def process():
         f'Reclassifier webmap update operation: {reclassifier_result}',
     ]
     summary_message.message = '\n'.join(summary_rows)
-    summary_message.attachments = secrets.ERAP_LOG_PATH
+    summary_message.attachments = config.ERAP_LOG_PATH
 
     erap_supervisor.notify(summary_message)
 
