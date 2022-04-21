@@ -5,6 +5,8 @@ a description of what this module does.
 this file is for testing linting...
 """
 
+import base64
+
 TEST = 'test'
 
 
@@ -42,18 +44,17 @@ def main(event, context):
     Returns:
         None. The output is written to Cloud Logging.
     """
-    import base64
 
     print(
-        """This Function was triggered by messageId {} published at {} to {}
-    """.format(context.event_id, context.timestamp, context.resource["name"])
+        f'This Function was triggered by messageId {context.event_id} published at {context.timestamp} to ' /
+        f'{context.resource["name"]}'
     )
 
     if 'data' in event:
         name = base64.b64decode(event['data']).decode('utf-8')
     else:
         name = 'World'
-    print('Hello {}!'.format(name))
+    print(f'Hello {name}!')
 
 
 if __name__ == '__main__':
