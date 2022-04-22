@@ -86,9 +86,9 @@ jobs:
             gcloud pubsub topics create monday-morning-topic --quiet
           fi
 
-      - name: 🕰️ Create cloud scheduler
+      - name: 🕰️ Create Cloud Scheduler
         run: |
-          if [ ! "$(gcloud scheduler jobs list | grep monday-morning)" ]; then
+          if [ ! "$(gcloud scheduler jobs list --location=us-central1 | grep monday-morning)" ]; then
             gcloud scheduler jobs create pubsub monday-morning \
               --description="Trigger the erap-skid bot once a week on monday morning" \
               --schedule="0 9 * * 1" \
