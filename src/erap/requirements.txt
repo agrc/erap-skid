@@ -1,3 +1,4 @@
 agrc-supervisor==2.0.*
 ugrc-palletjack==2.0.*
 arcgis==1.9.*
+google-cloud-storage==2.3.*
