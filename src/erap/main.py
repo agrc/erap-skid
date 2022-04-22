@@ -7,24 +7,26 @@ Updates the DWS ERAP layer based on their weekly
 import logging
 import sys
 from datetime import datetime
-from logging.handlers import RotatingFileHandler
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import arcgis
+from google.cloud import storage
 from palletjack import ColorRampReclassifier, FeatureServiceInlineUpdater, SFTPLoader
 from supervisor.message_handlers import SendGridHandler
 from supervisor.models import MessageDetails, Supervisor
 
-#: This makes it work when calling with just python <file>/installing via pip and in the gcf framework, where
+#: This makes it work when calling with just `python <file>`/installing via pip and in the gcf framework, where
 #: the relative imports fail because of how it's calling the function.
 try:
-    from . import config, rotating
+    from . import config
 except ImportError:
     import config
-    import rotating
 
 
-def _initialize():
+def _initialize(tempdir_path):
 
+    log_path = tempdir_path / config.ERAP_LOG_NAME
     erap_logger = logging.getLogger('erap')
     erap_logger.setLevel(config.LOG_LEVEL)
     palletjack_logger = logging.getLogger('palletjack')
@@ -37,8 +39,7 @@ def _initialize():
     )
     cli_handler.setFormatter(formatter)
 
-    log_handler = RotatingFileHandler(config.ERAP_LOG_PATH, backupCount=config.ROTATE_COUNT)
-    log_handler.doRollover()  #: Rotate the log on each run
+    log_handler = logging.FileHandler(log_path, mode='w')
     log_handler.setLevel(config.LOG_LEVEL)
     log_handler.setFormatter(formatter)
 
@@ -53,7 +54,7 @@ def _initialize():
     logging.captureWarnings(True)
 
     erap_logger.debug('Creating Supervisor object')
-    erap_supervisor = Supervisor(logger=erap_logger, log_path=config.ERAP_LOG_PATH)
+    erap_supervisor = Supervisor(logger=erap_logger, log_path=log_path)
     erap_supervisor.add_message_handler(
         SendGridHandler(sendgrid_settings=config.SENDGRID_SETTINGS, project_name='erap')
     )
@@ -67,23 +68,33 @@ def process():
 
     start = datetime.now()
 
-    erap_supervisor = _initialize()
+    tempdir = TemporaryDirectory()
+    tempdir_path = Path(tempdir)
+
+    erap_supervisor = _initialize(tempdir_path)
 
     module_logger = logging.getLogger(__name__)
 
     module_logger.debug('Logging into `%s` as `%s`', config.AGOL_ORG, config.AGOL_USER)
     gis = arcgis.gis.GIS(config.AGOL_ORG, config.AGOL_USER, config.AGOL_PASSWORD)
     erap_webmap_item = gis.content.get(config.ERAP_WEBMAP_ITEMID)  # pylint: disable=no-member
-    rotator = rotating.FolderRotator(config.ERAP_BASE_DIR)
-    erap_download_dir = rotator.get_rotated_directory(max_folder_count=config.ROTATE_COUNT)
 
     #: Load the latest data from FTP
     module_logger.info('Getting data from FTP')
     erap_loader = SFTPLoader(
-        config.SFTP_HOST, config.SFTP_USERNAME, config.SFTP_PASSWORD, config.KNOWNHOSTS, erap_download_dir
+        config.SFTP_HOST, config.SFTP_USERNAME, config.SFTP_PASSWORD, config.KNOWNHOSTS,
+        tempdir_path)
     )
     files_downloaded = erap_loader.download_sftp_folder_contents(sftp_folder=config.SFTP_FOLDER)
     dataframe = erap_loader.read_csv_into_dataframe(config.ERAP_FILE_NAME, config.ERAP_DATA_TYPES)
+
+    #: Save the source file to Cloud storage for future reference; bucket should have an age-based retention policy
+    module_logger.info('Saving file to Cloud Storage')
+    blob_name = f'{config.ERAP_FILE_NAME}_{start.strftime("%Y-%m-%d")}'
+    blob = storage.Client() \
+                  .bucket(config.STORAGE_BUCKET) \
+                  .blob(blob_name)
+    blob.upload_from_filename(tempdir_path / config.ERAP_FILE_NAME)
 
     #: Update the AGOL data
     module_logger.info('Updating data in AGOL')
@@ -117,9 +128,16 @@ def process():
         f'Reclassifier webmap update operation: {reclassifier_result}',
     ]
     summary_message.message = '\n'.join(summary_rows)
-    summary_message.attachments = config.ERAP_LOG_PATH
+    summary_message.attachments = config.ERAP_LOG_NAME
 
     erap_supervisor.notify(summary_message)
+
+    #: Try to clean up the tempdir (we don't use a context manager); log any errors as a heads up
+    #: This dir shouldn't persist between cloud function calls, but in case it does, we try to clean it up
+    try:
+        tempdir.cleanup()
+    except Exception as error:
+        module_logger.error(error)
 
 
 def main(event, context):  # pylint: disable=unused-argument
