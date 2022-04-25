@@ -36,6 +36,7 @@ setup(
         'arcgis==1.9.*',
         'ugrc-palletjack==2.0.*',
         'agrc-supervisor==2.0.*',
+        'google-cloud-storage==2.3.*',
     ],
     extras_require={
         'tests': [

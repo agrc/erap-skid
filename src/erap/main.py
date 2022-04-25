@@ -70,7 +70,7 @@ def _get_secrets():
         return json.loads(Path('/secrets/secrets.json').read_text(encoding='utf-8'))
 
     secret_folder = (Path(__file__).parent / 'secrets')
-    if secret_folder.exits():
+    if secret_folder.exists():
         return json.loads(secret_folder / 'secrets.json').read_text(encoding='utf-8')
 
     raise FileNotFoundError('Secrets folder not found; secrets not loaded.')
