@@ -8,6 +8,16 @@ from pathlib import Path
 
 import numpy as np
 
+PROJECT_ID = 'ut-dts-agrc-erap-dev'
+# SECRET_NAMES = [
+#     'AGOL_USER',
+#     'AGOL_PASSWORD',
+#     'SFTP_HOST',
+#     'SFTP_USERNAME',
+#     'SFTP_PASSWORD',
+#     'SFTP_FOLDER',
+#     # 'SENDGRID_API_KEY',  #: requested before the rest in separate call
+# ]
 AGOL_ORG = 'https://utah.maps.arcgis.com'
 # AGOL_USER =
 # AGOL_PASSWORD =
@@ -18,7 +28,7 @@ SENDGRID_SETTINGS = {  #: Settings for SendGridHandler
     'prefix': f'ERAP on {socket.gethostname()}: ',
 }
 LOG_LEVEL = logging.DEBUG
-ROTATE_COUNT = 40
+# ROTATE_COUNT = 40
 
 # SFTP_HOST =
 # SFTP_USERNAME =
@@ -42,4 +52,4 @@ ERAP_DATA_TYPES = {
     'Updated': str,
 }
 
-STORAGE_BUCKET = ''
+STORAGE_BUCKET = 'ut-dts-agrc-erap-dev-data'

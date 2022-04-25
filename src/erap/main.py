@@ -4,11 +4,13 @@
 Updates the DWS ERAP layer based on their weekly
 """
 
+import json
 import logging
 import sys
 from datetime import datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 
 import arcgis
 from google.cloud import storage
@@ -24,9 +26,8 @@ except ImportError:
     import config
 
 
-def _initialize(tempdir_path):
+def _initialize(log_path, sendgrid_api_key):
 
-    log_path = tempdir_path / config.ERAP_LOG_NAME
     erap_logger = logging.getLogger('erap')
     erap_logger.setLevel(config.LOG_LEVEL)
     palletjack_logger = logging.getLogger('palletjack')
@@ -55,11 +56,24 @@ def _initialize(tempdir_path):
 
     erap_logger.debug('Creating Supervisor object')
     erap_supervisor = Supervisor(logger=erap_logger, log_path=log_path)
-    erap_supervisor.add_message_handler(
-        SendGridHandler(sendgrid_settings=config.SENDGRID_SETTINGS, project_name='erap')
-    )
+    sendgrid_settings = config.SENDGRID_SETTINGS
+    sendgrid_settings['api_key'] = sendgrid_api_key
+    erap_supervisor.add_message_handler(SendGridHandler(sendgrid_settings=sendgrid_settings, project_name='erap'))
 
     return erap_supervisor
+
+
+def _get_secrets():
+    secret_folder = Path('/secrets')
+
+    if secret_folder.exists():
+        return json.loads(Path('/secrets/secrets.json').read_text(encoding='utf-8'))
+
+    secret_folder = (Path(__file__).parent / 'secrets')
+    if secret_folder.exits():
+        return json.loads(secret_folder / 'secrets.json').read_text(encoding='utf-8')
+
+    raise FileNotFoundError('Secrets folder not found; secrets not loaded.')
 
 
 def process():
@@ -68,24 +82,26 @@ def process():
 
     start = datetime.now()
 
-    tempdir = TemporaryDirectory()
-    tempdir_path = Path(tempdir)
+    secrets = SimpleNamespace(**_get_secrets())
 
-    erap_supervisor = _initialize(tempdir_path)
+    tempdir = TemporaryDirectory()
+    tempdir_path = Path(tempdir.name)
+    log_path = tempdir / config.ERAP_LOG_NAME
+
+    erap_supervisor = _initialize(log_path, secrets.SENDGRID_API_KEY)
 
     module_logger = logging.getLogger(__name__)
 
-    module_logger.debug('Logging into `%s` as `%s`', config.AGOL_ORG, config.AGOL_USER)
-    gis = arcgis.gis.GIS(config.AGOL_ORG, config.AGOL_USER, config.AGOL_PASSWORD)
+    module_logger.debug('Logging into `%s` as `%s`', config.AGOL_ORG, secrets.AGOL_USER)
+    gis = arcgis.gis.GIS(config.AGOL_ORG, secrets.AGOL_USER, secrets.AGOL_PASSWORD)
     erap_webmap_item = gis.content.get(config.ERAP_WEBMAP_ITEMID)  # pylint: disable=no-member
 
     #: Load the latest data from FTP
     module_logger.info('Getting data from FTP')
     erap_loader = SFTPLoader(
-        config.SFTP_HOST, config.SFTP_USERNAME, config.SFTP_PASSWORD, config.KNOWNHOSTS,
-        tempdir_path)
+        secrets.SFTP_HOST, secrets.SFTP_USERNAME, secrets.SFTP_PASSWORD, config.KNOWNHOSTS, tempdir_path
     )
-    files_downloaded = erap_loader.download_sftp_folder_contents(sftp_folder=config.SFTP_FOLDER)
+    files_downloaded = erap_loader.download_sftp_folder_contents(sftp_folder=secrets.SFTP_FOLDER)
     dataframe = erap_loader.read_csv_into_dataframe(config.ERAP_FILE_NAME, config.ERAP_DATA_TYPES)
 
     #: Save the source file to Cloud storage for future reference; bucket should have an age-based retention policy
@@ -162,10 +178,10 @@ def main(event, context):  # pylint: disable=unused-argument
     Returns:
         None. The output is written to Cloud Logging.
     """
+
     process()
 
 
 if __name__ == '__main__':
     #: the code that executes if you run the file or module directly
-    # main()
-    print()
+    process()
