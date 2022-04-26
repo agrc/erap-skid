@@ -86,7 +86,8 @@ def process():
 
     tempdir = TemporaryDirectory()
     tempdir_path = Path(tempdir.name)
-    log_path = tempdir / config.ERAP_LOG_NAME
+    log_name = f'{config.ERAP_LOG_NAME}_{start.strftime("%Y-%m-%d")}.txt'
+    log_path = tempdir_path / log_name
 
     erap_supervisor = _initialize(log_path, secrets.SENDGRID_API_KEY)
 
@@ -105,12 +106,12 @@ def process():
     dataframe = erap_loader.read_csv_into_dataframe(config.ERAP_FILE_NAME, config.ERAP_DATA_TYPES)
 
     #: Save the source file to Cloud storage for future reference; bucket should have an age-based retention policy
-    module_logger.info('Saving file to Cloud Storage')
+    module_logger.info('Saving data file to Cloud Storage')
     blob_name = f'{config.ERAP_FILE_NAME}_{start.strftime("%Y-%m-%d")}'
-    blob = storage.Client() \
-                  .bucket(config.STORAGE_BUCKET) \
-                  .blob(blob_name)
-    blob.upload_from_filename(tempdir_path / config.ERAP_FILE_NAME)
+    file_blob = storage.Client() \
+                       .bucket(config.STORAGE_BUCKET) \
+                       .blob(blob_name)
+    file_blob.upload_from_filename(tempdir_path / config.ERAP_FILE_NAME)
 
     #: Update the AGOL data
     module_logger.info('Updating data in AGOL')
@@ -147,6 +148,12 @@ def process():
     summary_message.attachments = config.ERAP_LOG_NAME
 
     erap_supervisor.notify(summary_message)
+
+    module_logger.info('Saving log to Cloud Storage')
+    log_blob = storage.Client() \
+                      .bucket(config.STORAGE_BUCKET) \
+                      .blob(blob_name)
+    log_blob.upload_from_filename(tempdir_path / log_name)
 
     #: Try to clean up the tempdir (we don't use a context manager); log any errors as a heads up
     #: This dir shouldn't persist between cloud function calls, but in case it does, we try to clean it up

@@ -39,12 +39,14 @@ ERAP_FILE_NAME = 'ERAP_PAYMENTS.csv'
 ERAP_KEY_COLUMN = 'zip5'
 ERAP_CLASSIFICATION_COLUMN = 'Amount'
 
-ERAP_FEATURE_SERVICE_URL = 'https://services1.arcgis.com/99lidPhWCzftIe9K/arcgis/rest/services/ERAP_By_Zipcode/FeatureServer/0'
+ERAP_FEATURE_SERVICE_URL = (
+    'https://services1.arcgis.com/99lidPhWCzftIe9K/arcgis/rest/services/ERAP_By_Zipcode/FeatureServer/0'
+)
 ERAP_FEATURE_LAYER_ITEMID = '32f9c17b1ed04157a8a9a0a635f36c64'
 ERAP_WEBMAP_ITEMID = 'c14586a1117e4fd1a0865ffa9e3a9a37'
 ERAP_LAYER_NAME = 'Aggregate Paid Rental Assistance Applications'
 
-ERAP_LOG_NAME = 'log.txt'
+ERAP_LOG_NAME = 'log'
 ERAP_DATA_TYPES = {
     'zip5': str,
     'Count_': str,
