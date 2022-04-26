@@ -67,7 +67,7 @@ def _get_secrets():
     secret_folder = Path('/secrets')
 
     if secret_folder.exists():
-        return json.loads(Path('/secrets/secrets.json').read_text(encoding='utf-8'))
+        return json.loads(Path('/secrets/app/secrets.json').read_text(encoding='utf-8'))
 
     secret_folder = (Path(__file__).parent / 'secrets')
     if secret_folder.exists():
@@ -99,7 +99,7 @@ def process():
 
     #: Load the latest data from FTP
     module_logger.info('Getting data from FTP')
-    knownhosts = Path('/secrets/known_hosts')
+    knownhosts = Path('/secrets/ftp/known_hosts/')
     if not knownhosts.exists():
         knownhosts = config.KNOWNHOSTS
     erap_loader = SFTPLoader(secrets.SFTP_HOST, secrets.SFTP_USERNAME, secrets.SFTP_PASSWORD, knownhosts, tempdir_path)
