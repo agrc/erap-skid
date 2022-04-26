@@ -99,9 +99,10 @@ def process():
 
     #: Load the latest data from FTP
     module_logger.info('Getting data from FTP')
-    erap_loader = SFTPLoader(
-        secrets.SFTP_HOST, secrets.SFTP_USERNAME, secrets.SFTP_PASSWORD, config.KNOWNHOSTS, tempdir_path
-    )
+    knownhosts = Path('/secrets/knownhosts')
+    if not knownhosts.exists():
+        knownhosts = config.KNOWNHOSTS
+    erap_loader = SFTPLoader(secrets.SFTP_HOST, secrets.SFTP_USERNAME, secrets.SFTP_PASSWORD, knownhosts, tempdir_path)
     files_downloaded = erap_loader.download_sftp_folder_contents(sftp_folder=secrets.SFTP_FOLDER)
     dataframe = erap_loader.read_csv_into_dataframe(config.ERAP_FILE_NAME, config.ERAP_DATA_TYPES)
 
