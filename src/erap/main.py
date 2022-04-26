@@ -86,7 +86,7 @@ def process():
 
     tempdir = TemporaryDirectory()
     tempdir_path = Path(tempdir.name)
-    log_name = f'{config.ERAP_LOG_NAME}_{start.strftime("%Y-%m-%d")}.txt'
+    log_name = f'{config.ERAP_LOG_NAME}_{start.strftime("%Y%m%d %H:%M:%S")}.txt'
     log_path = tempdir_path / log_name
 
     erap_supervisor = _initialize(log_path, secrets.SENDGRID_API_KEY)
@@ -107,7 +107,7 @@ def process():
 
     #: Save the source file to Cloud storage for future reference; bucket should have an age-based retention policy
     module_logger.info('Saving data file to Cloud Storage')
-    blob_name = f'{config.ERAP_FILE_NAME}_{start.strftime("%Y-%m-%d")}'
+    blob_name = f'{config.ERAP_FILE_NAME}_{start.strftime("%Y%m%d %H:%M:%S")}'
     file_blob = storage.Client() \
                        .bucket(config.STORAGE_BUCKET) \
                        .blob(blob_name)
@@ -152,7 +152,7 @@ def process():
     module_logger.info('Saving log to Cloud Storage')
     log_blob = storage.Client() \
                       .bucket(config.STORAGE_BUCKET) \
-                      .blob(blob_name)
+                      .blob(log_name)
     log_blob.upload_from_filename(tempdir_path / log_name)
 
     #: Try to clean up the tempdir (we don't use a context manager); log any errors as a heads up
