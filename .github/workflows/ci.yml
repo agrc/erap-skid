@@ -78,7 +78,7 @@ jobs:
           event_trigger_type: providers/cloud.pubsub/eventTypes/topic.publish
           event_trigger_resource: projects/${{ secrets.PROJECT_ID }}/topics/erap-scheduler
           deploy_timeout: 600
-          secret_volumes: /secrets/secrets.json=projects/{{ secrets.PROJECT_ID }}/secrets
+          secret_volumes: /secrets/secrets.json=secrets
 
 
       - name: 📥 Create PubSub topic
