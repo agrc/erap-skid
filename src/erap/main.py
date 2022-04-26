@@ -99,7 +99,7 @@ def process():
 
     #: Load the latest data from FTP
     module_logger.info('Getting data from FTP')
-    knownhosts = Path('/secrets/knownhosts')
+    knownhosts = Path('/secrets/known_hosts')
     if not knownhosts.exists():
         knownhosts = config.KNOWNHOSTS
     erap_loader = SFTPLoader(secrets.SFTP_HOST, secrets.SFTP_USERNAME, secrets.SFTP_PASSWORD, knownhosts, tempdir_path)
