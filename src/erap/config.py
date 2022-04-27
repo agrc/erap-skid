@@ -35,7 +35,7 @@ LOG_LEVEL = logging.DEBUG
 # SFTP_PASSWORD =
 # SFTP_FOLDER =
 KNOWNHOSTS = f'{Path(__file__).parent.parent.parent}\\known_hosts'
-ERAP_FILE_NAME = 'ERAP_PAYMENTS'
+ERAP_FILE_NAME = 'ERAP_PAYMENTS.csv'
 ERAP_KEY_COLUMN = 'zip5'
 ERAP_CLASSIFICATION_COLUMN = 'Amount'
 
