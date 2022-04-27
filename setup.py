@@ -11,7 +11,7 @@ from setuptools import find_packages, setup
 
 #: Load version from source file
 version = {}
-with open('src/projectname/version.py', encoding='utf-8') as fp:
+with open('src/erap/version.py', encoding='utf-8') as fp:
     exec(fp.read(), version)
 
 setup(
