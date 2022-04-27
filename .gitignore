@@ -1,3 +1,7 @@
+secrets.py
+secrets.json
+known_hosts
+
 *.py[cod]
 
 # Packages

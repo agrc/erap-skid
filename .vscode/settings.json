@@ -2,10 +2,12 @@
   "cSpell.words": [
     "AGRC",
     "Codecov",
+    "erap",
     "instafail",
     "isort",
     "pylint",
     "pytest",
+    "reclassifier",
     "yapf"
   ],
   "coverage-gutters.highlightdark": "rgb(61, 153, 112, .05)",
