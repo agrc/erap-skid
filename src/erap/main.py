@@ -21,9 +21,10 @@ from supervisor.models import MessageDetails, Supervisor
 #: This makes it work when calling with just `python <file>`/installing via pip and in the gcf framework, where
 #: the relative imports fail because of how it's calling the function.
 try:
-    from . import config
+    from . import config, version
 except ImportError:
     import config
+    import version
 
 
 def _initialize(log_path, sendgrid_api_key):
@@ -58,7 +59,9 @@ def _initialize(log_path, sendgrid_api_key):
     erap_supervisor = Supervisor(logger=erap_logger, log_path=log_path)
     sendgrid_settings = config.SENDGRID_SETTINGS
     sendgrid_settings['api_key'] = sendgrid_api_key
-    erap_supervisor.add_message_handler(SendGridHandler(sendgrid_settings=sendgrid_settings, project_name='erap'))
+    erap_supervisor.add_message_handler(
+        SendGridHandler(sendgrid_settings=sendgrid_settings, client_name='erap', client_version=version.__version__)
+    )
 
     return erap_supervisor
 
