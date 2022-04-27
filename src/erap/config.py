@@ -28,7 +28,6 @@ SENDGRID_SETTINGS = {  #: Settings for SendGridHandler
     'prefix': f'ERAP on {socket.gethostname()}: ',
 }
 LOG_LEVEL = logging.DEBUG
-# ROTATE_COUNT = 40
 
 # SFTP_HOST =
 # SFTP_USERNAME =
