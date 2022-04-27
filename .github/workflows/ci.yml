@@ -79,7 +79,7 @@ jobs:
           event_trigger_resource: projects/${{ secrets.PROJECT_ID }}/topics/monday-morning-topic
           deploy_timeout: 600
           secret_volumes: |
-            /secrets/app/secrets.json=${{secrets.PROJECT_ID}}/secrets
+            /secrets/app/secrets.json=${{secrets.PROJECT_ID}}/app_secrets
             /secrets/ftp/known_hosts=${{secrets.PROJECT_ID}}/known_hosts
 
       - name: 📥 Create PubSub topic
