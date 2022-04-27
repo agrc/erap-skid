@@ -6,7 +6,7 @@ on:
       - main
       - dev
   pull_request:
-      branches:
+    branches:
       - main
       - dev
 
@@ -20,27 +20,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: 3.8
-        # cache: pip
-        # cache-dependency-path: setup.py
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.8
+          # cache: pip
+          # cache-dependency-path: setup.py
 
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Install module
-      run: pip install .[tests]
+      - name: Install module
+        run: pip install .[tests]
 
-    - name: Test with pytest
-      run: pytest
+      - name: Test with pytest
+        run: pytest
 
-    - name: Report coverage to Codecov
-      uses: codecov/codecov-action@v2
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        file: ./cov.xml
+      - name: Report coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./cov.xml
 
   deploy-dev:
     name: Deploy to GCF
@@ -78,11 +78,12 @@ jobs:
           event_trigger_type: providers/cloud.pubsub/eventTypes/topic.publish
           event_trigger_resource: projects/${{ secrets.PROJECT_ID }}/topics/monday-morning-topic
           deploy_timeout: 600
-          secret_volumes: /secrets/app/secrets.json=${{secrets.PROJECT_ID}}/secrets/secrets, /secrets/ftp/known_hosts=${{secrets.PROJECT_ID}}/secrets/known_hosts
-
+          secret_volumes: |
+            /secrets/app/secrets.json=${{secrets.PROJECT_ID}}/secrets/secrets
+            /secrets/ftp/known_hosts=${{secrets.PROJECT_ID}}/secrets/known_hosts
 
       - name: 📥 Create PubSub topic
-        run : |
+        run: |
           if [ ! "$(gcloud pubsub topics list | grep monday-morning-topic)" ]; then
             gcloud pubsub topics create monday-morning-topic --quiet
           fi
