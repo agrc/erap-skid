@@ -56,7 +56,7 @@ def _initialize(log_path, sendgrid_api_key):
     logging.captureWarnings(True)
 
     erap_logger.debug('Creating Supervisor object')
-    erap_supervisor = Supervisor(logger=erap_logger, log_path=log_path)
+    erap_supervisor = Supervisor(handle_errors=False)
     sendgrid_settings = config.SENDGRID_SETTINGS
     sendgrid_settings['api_key'] = sendgrid_api_key
     erap_supervisor.add_message_handler(
@@ -94,7 +94,7 @@ def process():
 
     erap_supervisor = _initialize(log_path, secrets.SENDGRID_API_KEY)
 
-    module_logger = logging.getLogger(__name__)
+    module_logger = logging.getLogger('erap')
 
     module_logger.debug('Logging into `%s` as `%s`', config.AGOL_ORG, secrets.AGOL_USER)
     gis = arcgis.gis.GIS(config.AGOL_ORG, secrets.AGOL_USER, secrets.AGOL_PASSWORD)
@@ -150,7 +150,7 @@ def process():
         f'Reclassifier webmap update operation: {reclassifier_result}',
     ]
     summary_message.message = '\n'.join(summary_rows)
-    summary_message.attachments = config.ERAP_LOG_NAME
+    summary_message.attachments = tempdir_path / log_name
 
     erap_supervisor.notify(summary_message)
 
