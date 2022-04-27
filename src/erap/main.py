@@ -108,7 +108,7 @@ def process():
 
     #: Save the source file to Cloud storage for future reference; bucket should have an age-based retention policy
     module_logger.info('Saving data file to Cloud Storage')
-    blob_name = f'{config.ERAP_FILE_NAME}_{start.strftime("%Y%m%d %H:%M:%S")}'
+    blob_name = f'{config.ERAP_FILE_NAME}_{start.strftime("%Y%m%d-%H%M%S")}.csv'
     file_blob = storage.Client() \
                        .bucket(config.STORAGE_BUCKET) \
                        .blob(blob_name)
