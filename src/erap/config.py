@@ -8,19 +8,7 @@ from pathlib import Path
 
 import numpy as np
 
-PROJECT_ID = 'ut-dts-agrc-erap-dev'
-# SECRET_NAMES = [
-#     'AGOL_USER',
-#     'AGOL_PASSWORD',
-#     'SFTP_HOST',
-#     'SFTP_USERNAME',
-#     'SFTP_PASSWORD',
-#     'SFTP_FOLDER',
-#     # 'SENDGRID_API_KEY',  #: requested before the rest in separate call
-# ]
 AGOL_ORG = 'https://utah.maps.arcgis.com'
-# AGOL_USER =
-# AGOL_PASSWORD =
 SENDGRID_SETTINGS = {  #: Settings for SendGridHandler
     # 'api_key':
     'from_address': 'noreply@utah.gov',
@@ -29,10 +17,6 @@ SENDGRID_SETTINGS = {  #: Settings for SendGridHandler
 }
 LOG_LEVEL = logging.DEBUG
 
-# SFTP_HOST =
-# SFTP_USERNAME =
-# SFTP_PASSWORD =
-# SFTP_FOLDER =
 KNOWNHOSTS = f'{Path(__file__).parent.parent.parent}\\known_hosts'
 ERAP_FILE_NAME = 'ERAP_PAYMENTS.csv'
 ERAP_KEY_COLUMN = 'zip5'
@@ -52,5 +36,3 @@ ERAP_DATA_TYPES = {
     'Amount': np.float64,
     'Updated': str,
 }
-
-STORAGE_BUCKET = 'ut-dts-agrc-erap-dev-data'
