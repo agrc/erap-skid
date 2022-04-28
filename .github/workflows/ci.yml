@@ -79,6 +79,7 @@ jobs:
           event_trigger_resource: projects/${{ secrets.PROJECT_ID }}/topics/monday-morning-topic
           deploy_timeout: 600
           memory_mb: 512
+          env_vars: STORAGE_BUCKET=${{secrets.STORAGE_BUCKET}}
           secret_volumes: |
             /secrets/app/secrets.json=${{secrets.PROJECT_ID}}/app_secrets
             /secrets/ftp/known_hosts=${{secrets.PROJECT_ID}}/known_hosts
@@ -148,6 +149,7 @@ jobs:
           event_trigger_resource: projects/${{ secrets.PROJECT_ID }}/topics/monday-morning-topic
           deploy_timeout: 600
           memory_mb: 512
+          env_vars: STORAGE_BUCKET=${{secrets.STORAGE_BUCKET}}
           secret_volumes: |
             /secrets/app/secrets.json=${{secrets.PROJECT_ID}}/app_secrets
             /secrets/ftp/known_hosts=${{secrets.PROJECT_ID}}/known_hosts
