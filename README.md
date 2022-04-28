@@ -2,6 +2,8 @@
 
 A Google Cloud Function that updates the ERAP AGOL data from exports uploaded to FTP.
 
+The ERAP skid uses palletjack to load csv data from sftp into a dataframe, update an AGOL layer with that dataframe, and then update the symbology ranges in a webmap layer based on the new data. It also uses supervisor to send a summary email at the end. Error handling and reporting is handled by GCP.
+
 ## Setup Local Dev Environment
 
 1. Create new environment
