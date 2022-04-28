@@ -8,6 +8,7 @@ import json
 import logging
 import sys
 from datetime import datetime
+from os import environ
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
@@ -25,6 +26,8 @@ try:
 except ImportError:
     import config
     import version
+
+STORAGE_BUCKET = environ.get('STORAGE_BUCKET')
 
 
 def _initialize(log_path, sendgrid_api_key):
@@ -114,7 +117,7 @@ def process():
     file_base_name = str(config.ERAP_FILE_NAME).split('.', maxsplit=1)[0]
     blob_name = f'{file_base_name}_{start.strftime("%Y%m%d-%H%M%S")}.csv'
     file_blob = storage.Client() \
-                       .bucket(config.STORAGE_BUCKET) \
+                       .bucket(STORAGE_BUCKET) \
                        .blob(blob_name)
     file_blob.upload_from_filename(tempdir_path / config.ERAP_FILE_NAME)
 
@@ -156,7 +159,7 @@ def process():
 
     module_logger.info('Saving log to Cloud Storage')
     log_blob = storage.Client() \
-                      .bucket(config.STORAGE_BUCKET) \
+                      .bucket(STORAGE_BUCKET) \
                       .blob(log_name)
     log_blob.upload_from_filename(tempdir_path / log_name)
 
