@@ -72,9 +72,11 @@ def _initialize(log_path, sendgrid_api_key):
 def _get_secrets():
     secret_folder = Path('/secrets')
 
+    #: Try to get the secrets from the Cloud Function mount point
     if secret_folder.exists():
         return json.loads(Path('/secrets/app/secrets.json').read_text(encoding='utf-8'))
 
+    #: Otherwise, try to load a local copy for local development
     secret_folder = (Path(__file__).parent / 'secrets')
     if secret_folder.exists():
         return json.loads((secret_folder / 'secrets.json').read_text(encoding='utf-8'))
@@ -105,6 +107,7 @@ def process():
 
     #: Load the latest data from FTP
     module_logger.info('Getting data from FTP')
+    #: Get knownhosts path from the Cloud Function mount point; otherwise try a local copy
     knownhosts = Path('/secrets/ftp/known_hosts/')
     if not knownhosts.exists():
         knownhosts = config.KNOWNHOSTS
